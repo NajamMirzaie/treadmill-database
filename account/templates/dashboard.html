@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .user-dropdown {
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        .user-dropdown select {
+            padding: 8px 24px 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            font-size: 16px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        .user-dropdown::after {
+            content: "\25BC";
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #666;
+            pointer-events: none;
+        }
+        #exportCSVBtn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        #exportCSVBtn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <div class="user-dropdown">
+            <select id="userDropdown">
+                <option value="all">All Users</option>
+                {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button id="exportCSVBtn">Export as CSV</button>
+
+        <section id="usersSection">
+            <h2>Users</h2>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Weight - kg</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr data-user-id="{{ user.id }}">
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.weight }}</td>
+                        <td>{{ user.age }}</td>
+                        <td>{{ user.gender }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section id="treadmillSection">
+            <h2>Treadmill Data</h2>
+            <table id="treadmillTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+
+                        <th>Distance - m</th>
+                        <th>Duration</th>
+                        <th>Speed - Km/h</th>
+                        <th>Heart Rate - RPM</th>
+                        <th>Calories Burned</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in datas %}
+                    <tr data-user-id="{{ data.user.id }}">
+                        <td>{{ data.id }}</td>
+                        <td>{{ data.user.email }}</td>
+
+                        <td>{{ data.distance }}</td>
+                        <td>{{ data.duration }}</td>
+                        <td>{{ data.speed }}</td>
+                        <td>{{ data.heart_rate }}</td>
+                        <td>{{ data.calories_burned }}</td>
+                        <td>{{ data.timestamp }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+             document.addEventListener('DOMContentLoaded', function() {
+    const userDropdown = document.getElementById('userDropdown');
+    const usersTable = document.getElementById('usersTable');
+    const treadmillTable = document.getElementById('treadmillTable');
+    const exportCSVBtn = document.getElementById('exportCSVBtn');
+
+    userDropdown.addEventListener('change', function() {
+        const selectedUserId = userDropdown.value;
+        const userRows = document.querySelectorAll('#usersTable tbody tr');
+        const treadmillRows = document.querySelectorAll('#treadmillTable tbody tr');
+
+        // Show all rows by default
+        userRows.forEach(row => {
+            row.style.display = '';
+        });
+
+        treadmillRows.forEach(row => {
+            row.style.display = '';
+        });
+
+        if (selectedUserId !== 'all') {
+            // Hide rows not matching selected user
+            userRows.forEach(row => {
+                if (row.getAttribute('data-user-id') !== selectedUserId) {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Hide treadmill rows not matching selected user
+            treadmillRows.forEach(row => {
+                if (row.getAttribute('data-user-id') !== selectedUserId) {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+
+    exportCSVBtn.addEventListener('click', function() {
+        const selectedUserId = userDropdown.value;
+        const rows = treadmillTable.querySelectorAll(`tbody tr[data-user-id="${selectedUserId}"]`);
+        const csvData = [];
+
+        // Get the header row
+        const headerRow = Array.from(treadmillTable.querySelectorAll('thead th'))
+            .map(th => th.textContent)
+            .join(',');
+        csvData.push(headerRow);
+
+        // Get the data rows for the selected user
+        rows.forEach(row => {
+            const rowData = Array.from(row.querySelectorAll('td'))
+                .map(td => td.textContent)
+                .join(',');
+            csvData.push(rowData);
+        });
+
+        const csvContent = csvData.join('\n');
+        const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const csvUrl = URL.createObjectURL(csvBlob);
+
+        const link = document.createElement('a');
+        link.setAttribute('href', csvUrl);
+        link.setAttribute('download', 'treadmill_data.csv');
+        link.click();
+    });
+});
+    </script>
+</body>
+</html>

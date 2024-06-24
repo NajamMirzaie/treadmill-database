@@ -1,11 +1,37 @@
 from rest_framework.response import Response
 from rest_framework import status
+from django.shortcuts import render
 from rest_framework.views import APIView
 from account.serializers import UserRegistrationSerializer,UserLoginSerializer,UserProfileSerializer,UserChangePasswordSerializer,SendPasswordResetEmailSerializer,UserPasswordResetSerializer
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import MethodNotAllowed
+from django.contrib.auth import login
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import User, TreadmillData
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def dashboard(request):
+    context = {
+        'users': User.objects.all(),
+        'datas': TreadmillData.objects.all().order_by('-id'),
+        }
+    return render(request, 'dashboard.html', context)
+
+def login_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Invalid Gmail or password.')
+    return render(request, 'login.html')
 
 
 def get_tokens_for_user(user):
@@ -72,10 +98,6 @@ class UpdateUserProfileView(UpdateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
 class UserChangePasswordView(APIView):
 
     def post(self, request, format=None):
@@ -104,7 +126,6 @@ class UserPasswordResetView(APIView):
 
 
 
-from .models import TreadmillData, User
 from .serializers import WorkoutSerializer
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.decorators import api_view
@@ -152,9 +173,7 @@ def save_workout(request):
 
 
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import TreadmillData
-from .serializers import WorkoutSerializer
+
 
 @api_view(['GET'])
 def get_all_workouts(request):

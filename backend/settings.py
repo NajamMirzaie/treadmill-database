@@ -15,7 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+LOGIN_URL = 'login'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s(r86(tsq4$w+=2v7(agakm_!4#8d2_o#3bmpo$wijbxd@p%-v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 ALLOWED_HOSTS = ['*']
@@ -184,5 +184,10 @@ PASSWORD_RESET_TIMEOUT = 900
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+STATIC_ROOT = '/home/najammirzaie1/treadmill-database/static'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
 
 
